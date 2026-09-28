@@ -5,7 +5,6 @@ Every generator returns DAILY asset returns shaped (n_paths, horizon, n_assets),
 path and risk functions below don't care which one made the scenarios.
 """
 import numpy as np
-import pandas as pd
 
 
 def ewma_cov(returns, lam=0.94):

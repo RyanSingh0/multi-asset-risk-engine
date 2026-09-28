@@ -1,4 +1,4 @@
-"""VaR / ES (four ways), drawdowns, risk decomposition, stress tests.
+"""VaR / ES, VaR backtests, drawdowns, risk decomposition, stress tests.
 
 Inputs are simple daily returns. VaR and ES come out as POSITIVE loss fractions of the book,
 so 0.02 means a 2% loss.

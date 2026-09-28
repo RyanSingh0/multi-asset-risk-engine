@@ -10,7 +10,6 @@ since that price jump is just the spread between two contracts.
 """
 import sys
 from pathlib import Path
-import numpy as np
 import pandas as pd
 
 BASE = Path(__file__).resolve().parent.parent          # this repo

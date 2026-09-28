@@ -1,7 +1,6 @@
-"""GARCH(1,1) and DCC(1,1), fitted by maximum likelihood with scipy, no extra packages.
+"""GARCH(1,1) and DCC(1,1) by maximum likelihood, scipy only.
 
-I work in percent returns inside the fits (numbers near 1 make the optimiser much happier) and convert
-back to fractions on the way out.
+Fits run on percent returns (the optimiser behaves much better near 1), outputs are fractions.
 
 GARCH(1,1):  s2[t] = omega + alpha * e[t-1]^2 + beta * s2[t-1],   e = r - mu
 DCC(1,1):    Q[t] = (1 - a - b) * Qbar + a * z[t-1] z[t-1]' + b * Q[t-1],   R[t] = Q[t] scaled to a correlation matrix
@@ -48,7 +47,7 @@ def fit_garch(r, dist='t'):
     bounds = [(None, None), (1e-8, 10 * v), (0, 0.5), (0, 0.9999)] + ([(2.1, 200)] if dist == 't' else [])
     res = optimize.minimize(_nll, start, args=(x, dist), method='L-BFGS-B', bounds=bounds)
     # L-BFGS-B often stops early on nu (flat likelihood), so I always polish with Nelder-Mead.
-    # Checked against three different starting values of nu, all land on the same optimum.
+    # (checked: three different starting nu all land on the same optimum)
     res = optimize.minimize(_nll, res.x, args=(x, dist), method='Nelder-Mead',
                             options={'maxiter': 20000, 'xatol': 1e-8, 'fatol': 1e-8})
     p = dict(zip(['mu', 'omega', 'alpha', 'beta', 'nu'], res.x))
@@ -73,12 +72,9 @@ def std_t_quantile(q, nu):
 
 
 def garch_var_forecasts(r, level=0.99, window=1000, refit=21, dist='t', quantile='model'):
-    """Rolling one-day VaR from GARCH(1,1). Params re-estimated every `refit` days on the last `window` days,
-    then held fixed while I filter forward. Positive number = loss.
-
-    quantile='model' uses the fitted t (or normal). quantile='empirical' uses the actual 1% quantile of the
-    standardised residuals in the fit window (filtered historical simulation on GARCH vol), which picks up
-    the negative skew a symmetric t can't."""
+    """Rolling 1-day VaR (positive = loss). Refit every `refit` days on the last `window` days.
+    quantile='empirical' takes the tail from the fit window's standardised residuals instead of the
+    fitted t, which catches the negative skew a symmetric t misses."""
     r = pd.Series(r).dropna()
     x = r.values
     out = pd.Series(np.nan, index=r.index)
@@ -157,11 +153,8 @@ def dcc_path(returns, fit):
 
 
 def dcc_var_forecasts(returns, weights, level=0.99, window=1000, refit=126):
-    """Rolling one-day portfolio VaR from DCC-GARCH. Refit every `refit` days on the last `window` days.
-
-    Returns two VaR series, one with the normal quantile on the portfolio vol and one with the empirical
-    quantile of the portfolio's standardised residuals in the fit window, plus the average pairwise
-    correlation each day (useful on its own as a "diversification is breaking down" gauge)."""
+    """Rolling 1-day portfolio VaR from DCC-GARCH, refit every `refit` days.
+    Returns (VaR with normal tail, VaR with empirical tail, average pairwise correlation)."""
     X = pd.DataFrame(returns).dropna()
     w = pd.Series(weights).reindex(X.columns).fillna(0).values
     var_n = pd.Series(np.nan, index=X.index)

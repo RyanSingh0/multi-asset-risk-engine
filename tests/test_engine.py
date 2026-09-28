@@ -1,5 +1,4 @@
-"""Engine tests. Each one checks something that should hold exactly or within a known tolerance.
-Run from the Multi-Asset Risk Engine folder: python -m pytest -q tests"""
+"""Engine tests on simulated data, so no market data is needed:  python -m pytest -q tests"""
 import sys
 from pathlib import Path
 import numpy as np

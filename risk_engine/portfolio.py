@@ -32,7 +32,6 @@ def min_variance(cov):
 def risk_parity(cov, tol=1e-10, max_iter=10000):
     """ERC by fixed-point iteration (Chaves et al. 2012): w_i ~ 1 / (cov @ w)_i.
     Converges when cov is positive definite."""
-    n = len(cov)
     w = inverse_vol(cov)
     for _ in range(max_iter):
         m = cov @ w
@@ -65,7 +64,6 @@ def backtest(returns, scheme, lookback=252, rebalance='M', cost_bp=2.0, vol_targ
     port = pd.Series(np.nan, index=dates)
     wts = []
     w_drift = np.zeros(n)
-    lev_prev = 0.0
     X = R.values
     for k, s in enumerate(reb):
         window = X[s - lookback + 1:s + 1]
